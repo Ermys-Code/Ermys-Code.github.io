@@ -2,9 +2,11 @@
   --bg: #1b1c1d;
   --bg-header: #232426;
   --line: #34363a;
-  --text: #e8e8e6;
-  --muted: #9a9ca0;
-  --accent: #6fd3c0;
+  --text: #eeeeee;
+  --muted: #babcc1;
+  --accent: #009295;
+  --accent-light: #29dfeb;
+  --box-bg: rgba(0, 0, 0, 0.75);
 
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-brand: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -22,10 +24,13 @@ html {
 
 body {
   margin: 0;
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--bg);
+  background-image: url("Images/background.png");
+  background-repeat: repeat;
+  background-size: 128px;
+  image-rendering: pixelated;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 1rem;
@@ -42,6 +47,10 @@ a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
   border-radius: 2px;
+}
+
+.body-full-height{
+  min-height: 100%;
 }
 
 /* ---------- Cabecera ---------- */
@@ -109,6 +118,13 @@ a:focus-visible {
   padding: 4rem 1.5rem 6rem;
 }
 
+.hero-box {
+  padding: 3rem 3.5rem;
+  background: var(--box-bg);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+}
+
 .hero h1 {
   margin: 0;
   font-family: var(--font-brand);
@@ -121,7 +137,7 @@ a:focus-visible {
 .tagline {
   margin: 0.75rem 0 2rem;
   font-size: 1.15rem;
-  color: var(--muted);
+  color: var(--accent-light);
 }
 
 .social {
@@ -153,10 +169,156 @@ a:focus-visible {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .hero-box {
+    padding: 2rem 1.5rem;
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+  }
+}
+
+/* ---------- Páginas interiores ---------- */
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 65rem;
+  margin: 0 auto;
+  padding: 3rem;
+  background: var(--box-bg);
+  border: 1px solid var(--accent);
+  border-radius: 0px 0px 5px 5px;
+}
+
+.page h1 {
+  margin: 0 0 1rem;
+  font-family: var(--font-brand);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.page h2 {
+  margin: 2.5rem 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.page h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.page p {
+  margin: 0 0 1rem;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.text-link,
+.entries h2 a {
+  border-bottom: 1px solid var(--line);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.text-link:hover,
+.entries h2 a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.entries {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+}
+
+.entries li {
+  padding: 0 0 0 1.25rem;
+  margin-bottom: 2rem;
+  border-left: 2px solid var(--line);
+}
+
+.entries h2 {
+  margin: 0 0 0.25rem;
+}
+
+.entries p {
+  margin: 0 0 0.35rem;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tags li {
+  padding: 0.15rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- Iconos de contacto ---------- */
+
+.page h2.centered {
+  text-align: center;
+}
+
+.icon-links {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+}
+
+.icon-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  color: var(--muted);
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+
+.icon-links a:hover {
+  color: var(--accent);
+}
+
+.icon-links svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+/* ---------- Móvil (páginas interiores) ---------- */
+
+@media (max-width: 40rem) {
+  .page {
+    padding: 2rem 1.5rem;
   }
 }

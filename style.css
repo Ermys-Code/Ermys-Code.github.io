@@ -30,6 +30,8 @@ body {
   background-image: url("Images/background.png");
   background-repeat: repeat;
   background-size: 128px;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
   image-rendering: pixelated;
   color: var(--text);
   font-family: var(--font-body);

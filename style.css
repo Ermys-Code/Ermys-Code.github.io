@@ -194,6 +194,7 @@ a:focus-visible {
   padding: 3rem;
   background: var(--box-bg);
   border: 1px solid var(--accent);
+  border-style: none solid solid;
   border-radius: 0px 0px 5px 5px;
 }
 

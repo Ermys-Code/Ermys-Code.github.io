@@ -1,4 +1,3 @@
-// Menú desplegable para móvil. Sin JavaScript, la navegación se ve completa.
 document.documentElement.classList.add("js-nav");
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -37,3 +36,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+(function () {
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) return;
+
+  var FADE_MS = 150;
+  var root = document.documentElement;
+
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) root.classList.remove("is-leaving");
+  });
+
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    var link = e.target.closest("a[href]");
+    if (!link) return;
+    if (link.target && link.target !== "_self") return;
+    if (link.hasAttribute("download")) return;
+
+    var url = new URL(link.href, location.href);
+    if (url.origin !== location.origin) return;                       // enlaces externos
+    if (url.pathname === location.pathname && url.search === location.search) return; // misma página / #ancla
+
+    e.preventDefault();
+    root.classList.add("is-leaving");
+    setTimeout(function () { location.href = link.href; }, FADE_MS);
+  });
+})();

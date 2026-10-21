@@ -8,8 +8,8 @@
   --accent-light: #29dfeb;
   --box-bg: rgba(0, 0, 0, 0.75);
 
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-brand: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-body: "Poppins", system-ui, sans-serif;
+  --font-brand: "Clarity City", ui-monospace, monospace;
 }
 
 *,

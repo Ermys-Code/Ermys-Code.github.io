@@ -684,3 +684,11 @@ html.is-leaving main {
     animation: none;
   }
 }
+
+/* ---------- Button group ---------- */
+ 
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

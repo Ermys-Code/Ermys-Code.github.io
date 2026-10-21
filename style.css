@@ -429,3 +429,196 @@ a:focus-visible {
     border-left-color: var(--accent);
   }
 }
+
+/* ---------- Portfolio cards ---------- */
+ 
+.card-grid {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+ 
+.card {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-header);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+ 
+.card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  image-rendering: auto;
+}
+ 
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+ 
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 55%);
+}
+ 
+.card .card-title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+}
+ 
+.card .card-desc {
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+  transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+ 
+.card:hover img,
+.card:focus-visible img {
+  transform: scale(1.07);
+}
+ 
+.card:hover::before,
+.card:focus-visible::before {
+  opacity: 1;
+}
+ 
+.card:hover .card-desc,
+.card:focus-visible .card-desc {
+  max-height: 8rem;
+  margin-top: 0.5rem;
+  opacity: 1;
+}
+ 
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+ 
+@media (hover: none) {
+  .card::before {
+    opacity: 0.55;
+  }
+ 
+  .card .card-desc {
+    max-height: 8rem;
+    margin-top: 0.5rem;
+    opacity: 1;
+  }
+}
+ 
+@media (max-width: 40rem) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Posts list ---------- */
+ 
+.post-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+ 
+.post {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  transition: background-color 0.15s;
+}
+ 
+.post:hover,
+.post:focus-visible {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+ 
+.post:focus-visible {
+  outline-offset: -2px;
+}
+ 
+.post .post-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  transition: color 0.15s;
+}
+ 
+.post .post-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+ 
+.post:hover .post-title,
+.post:focus-visible .post-title {
+  color: var(--accent);
+}
+ 
+.post-side {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+ 
+.post-arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.15s, color 0.15s;
+}
+ 
+.post:hover .post-arrow,
+.post:focus-visible .post-arrow {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+ 
+@media (max-width: 40rem) {
+  .post {
+    gap: 1rem;
+    padding: 1rem 0.25rem;
+  }
+ 
+  .post-side {
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+}

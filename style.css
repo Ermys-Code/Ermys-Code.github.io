@@ -329,7 +329,9 @@ a:focus-visible {
 /* ---------- Dropdown menu (mobile) ---------- */
  
 .site-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
  
 .nav-toggle {
@@ -992,7 +994,7 @@ html.lightbox-open {
   justify-content: center;
 }
 
-/* ---------- Footer on gallery images ---------- */
+/* ---------- Caption on gallery images ---------- */
  
 .gallery figure {
   position: relative;
@@ -1020,4 +1022,34 @@ html.lightbox-open {
     padding: 1.5rem 0.6rem 0.5rem;
     font-size: 0.85rem;
   }
+}
+
+/* ---------- Gallery responsive ---------- */
+ 
+@media (max-width: 40rem) {
+  .gallery,
+  .gallery-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+ 
+  .gallery figcaption {
+    padding: 2.5rem 1rem 0.85rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* ---------- Links inside text ---------- */
+ 
+.page a.link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+ 
+.page a.link:hover,
+.page a.link:focus-visible {
+  color: var(--text);
 }

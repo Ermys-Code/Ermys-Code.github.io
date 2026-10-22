@@ -41,7 +41,7 @@
     </div>
     
     <p class="subtitle">Overview</p>
-    <p>In my Master's Degree project <a href="../Projects/Bound_by_Death.html">Bound by Death</a>, we needed a good atmosphere for our dark fantasy game, and following our teacher's advise, we decided that we wanted to have PBR for a realistic lighting in order to mkae the best atmosphere possible.</p>
+    <p>In my Master's Degree project <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, we needed a good atmosphere for our dark fantasy game, and following our teacher's advise, we decided that we wanted to have PBR for a realistic lighting in order to mkae the best atmosphere possible.</p>
     <p>Me and other classmate took the task, where the objective was change the basic Phong lighting that we had at the beginning for a complete forward PBR pipeline, with support for base color, metallic, roughness, normal map, emissive and AO textures, and compatible with our current light gameobjects, Point Light, Spot Light and Directional Light.</p>
   
 
@@ -65,7 +65,7 @@
       <li>Third task: Test the implementation on different scenarios with different materials and meshes.</li>
     </ul>
     <p>For the first task me and my classmate worked together.</p>
-    <p>For the second, we worked together on implementing the metallic-roughness calculations, and then I supported my classmate with the implementation of the normal, emissive and AO calculations, since I jumped to other task.</p>
+    <p>For the second, we worked together on implementing the metallic-roughness calculations, and then I supported my classmate with the implementation of the normal, emissive and AO calculations, since I jumped to other <a class="link" href="../Posts/HDR_Skybox.html">task</a>.</p>
     <p>For the third task, we both worked in our own tests in order to test the maximum number of possible scenarios.</p>
 
 
@@ -81,7 +81,13 @@
       <li>Roughness factor.</li>
       <li>8 bytes of padding to align memory with HLSL cBuffers.</li>
     </ul>
-    <p>So first we decided that we will use unity texture channel's standard for metallic, roughness and AO textures, where R channel is AO, G channel is roughness and B channel is metallic.</p>
+    <p>So first we decided that we will use unity texture channel's standard for metallic, roughness and AO textures.</p>
+    <ul class="list">
+      <li>R channel is AO.</li>
+      <li>G channel is roughness.</li> 
+      <li>B channel is metallic.</li>
+      <li>8 bytes of padding to align memory with HLSL cBuffers.</li>
+    </ul>
     <p>Then, in the material data struct we added bools to indicate if the material contains metallic/roughenn/AO txture, normal map texture and emissve texture, and two values, normal factor and emissive color value, so the final struct contains:</p>
     <ul class="list">
       <li>The base color value.</li>
@@ -108,7 +114,7 @@
       <li>Smith Masking Function for microfacet visibility.</li> 
       <li>GGX Normal Distribution Function for microfacet distribution.</li>
     </ul>
-    <p>After that I jumped to other task, but gave support to my classmate to do the normal unpacking and transformation from tangent space to world space and apply the AO and emissive textures to the pixel shader.</p>
+    <p>After that I jumped to other <a class="link" href="../Posts/HDR_Skybox.html">task</a>, but gave support to my classmate to do the normal unpacking and transformation from tangent space to world space and apply the AO and emissive textures to the pixel shader.</p>
 
     <br/>
 

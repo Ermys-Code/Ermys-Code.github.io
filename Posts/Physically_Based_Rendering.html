@@ -31,8 +31,139 @@
   </header>
 
   <main class="page">
-    <h1>Physically Based Rendering</h1>
-    <p class="lead">This is a placeholder.</p>
+    <div class="page-header">
+      <h1>Physically Based Rendering</h1>
+      <ul class="post-tags">
+        <li class="tag tag-team" title="Team project"><span class="sr-only">Team project</span></li>
+        <li class="tag tag-graphics" title="Graphics"><span class="sr-only">Graphics</span></li>
+        <li class="tag tag-engine" title="Engine"><span class="sr-only">Engine</span></li>
+      </ul>
+    </div>
+    
+    <p class="subtitle">Overview</p>
+    <p>In my Master's Degree project <a href="../Projects/Bound_by_Death.html">Bound by Death</a>, we needed a good atmosphere for our dark fantasy game, and following our teacher's advise, we decided that we wanted to have PBR for a realistic lighting in order to mkae the best atmosphere possible.</p>
+    <p>Me and other classmate took the task, where the objective was change the basic Phong lighting that we had at the beginning for a complete forward PBR pipeline, with support for base color, metallic, roughness, normal map, emissive and AO textures, and compatible with our current light gameobjects, Point Light, Spot Light and Directional Light.</p>
+  
+
+
+    <div class="gallery gallery-2">
+      <figure>
+        <img src="../Images/Posts/Physical_Based_Rendering/Before_PBR.png" alt="Before PBR" loading="lazy">
+        <figcaption>Before</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/Physical_Based_Rendering/After_PBR.png" alt="After PBR" loading="lazy">
+        <figcaption>After</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Problems and objectives</p>
+    <p>Since we had a basic Phong lighting system, we only had support for base color textures and both metallic and roughness factor, but nothing more, so with that in mind we started to plan the tasks.</p>
+    <ul class="list">
+      <li>First task: Add support for metallic, roughness, normal map, emissive and AO textures.</li>
+      <li>Second task: Implement normal calculations and the new render equation on the Pixel Shader.</li>
+      <li>Third task: Test the implementation on different scenarios with different materials and meshes.</li>
+    </ul>
+    <p>For the first task me and my classmate worked together.</p>
+    <p>For the second, we worked together on implementing the metallic-roughness calculations, and then I supported my classmate with the implementation of the normal, emissive and AO calculations, since I jumped to other task.</p>
+    <p>For the third task, we both worked in our own tests in order to test the maximum number of possible scenarios.</p>
+
+
+
+    <p class="subtitle">Technical Implementation</p>
+    
+    <p class="lead">First task: Support for new textures.</p>
+    <p>The first thing we did was to modify the material data struct that we send to the pixel shader, before it had only:</p> 
+    <ul class="list">
+      <li>The base color value.</li>
+      <li>If the material contains a base color texture.</li> 
+      <li>Metallic factor.</li>
+      <li>Roughness factor.</li>
+      <li>8 bytes of padding to align memory with HLSL cBuffers.</li>
+    </ul>
+    <p>So first we decided that we will use unity texture channel's standard for metallic, roughness and AO textures, where R channel is AO, G channel is roughness and B channel is metallic.</p>
+    <p>Then, in the material data struct we added bools to indicate if the material contains metallic/roughenn/AO txture, normal map texture and emissve texture, and two values, normal factor and emissive color value, so the final struct contains:</p>
+    <ul class="list">
+      <li>The base color value.</li>
+      <li>If the material contains a base color texture.</li> 
+      <li>Metallic factor.</li>
+      <li>Roughness factor.</li>
+      <li>If the material contains a metallic/roughness/AO texture.</li> 
+      <li>Normal factor.</li>
+      <li>If the material contains a normal map texture.</li> 
+      <li>Emissive color value.</li>
+      <li>If the material contains a emissive texture.</li> 
+      <li>12 bytes of padding to align memory with HLSL cBuffers.</li>
+    </ul>
+    <p>And with the new material data, we modified the creation of the material from a GLTF file to load the new textures and generate the updated material data.</p>
+    <p>Then modified the Root Signature of the pipeline to support the new textures inside the Descriptor Table for Shader Resource Views that we already had.</p>
+    <p>Finally, we modified the cBuffer of the material in the HLSL to match the new material data struct, and added the registers for the new textures.</p>
+
+    <br/>
+
+    <p class="lead">Second task: Normal and light calculations.</p>
+    <p>Following our teacher's advice and class materials, we implemented the Cook-Torrance BRDF model:</p>
+    <ul class="list">
+      <li>Schlick's Fproximation for the fresnel effect.</li>
+      <li>Smith Masking Function for microfacet visibility.</li> 
+      <li>GGX Normal Distribution Function for microfacet distribution.</li>
+    </ul>
+    <p>After that I jumped to other task, but gave support to my classmate to do the normal unpacking and transformation from tangent space to world space and apply the AO and emissive textures to the pixel shader.</p>
+
+    <br/>
+
+    <p class="lead">Third task: Test the implementation.</p>
+    <p>Once we had all the implementation done, we did multiple scenarios to test how robust was the system and the compatibility with the light components that we had.</p>
+    <p>Some of the test that we did include:</p>
+    <ul class="list">
+      <li>Check different roughness and metallic combinations on different meshes in the same scene.</li>
+      <li>Compare how the materials looked in our engine with how they looked in Unity and glTFViewer.</li> 
+      <li>Expose different meshes with different materials to all the light types of our engine.</li>
+      <li>Test normal maps on different materials moving light sources around the mesh.</li>
+    </ul>
+
+
+
+    <p class="subtitle">Chalenges and problem-solving</p>
+
+    <p>We had 2 major issues during this development:</p>
+
+    <br/>
+
+    <p class="lead">Textures allocation.</p>
+    <p>Before this implementation, we only had one texture for mesh, so we just stored the SRV and use its the GPU Handle to send it to the shader, but now we needed all the textures to be contiguous in memory.</p>
+    <p>For this, we thougt about a reusable way to allocate a block of memory with configurable size inside a heap and get CPU and GPU Handles to the first element of this block.</p>
+    <p>Finally, another classmate that was already working on the Views made this implementation</p>
+
+    <br/>
+
+    <p class="lead">Color space problems on textures.</p>
+    <p>When supporting my classmate with the normal calculations, we faced a problem where, when applying the normal tangent to world space calculations, the light affecting the meshes was distorted.</p>
+    <p>The problem was that in the texture loading process, all textures were being initialized as a SRGB textures, and then depending on the type of texture, the color space was changed to linear, that made the normal map texture colors to change, so the resultant normal vectors were shifted.</p>
+    <p>To fix this, we changed the texture loading process to initialize each texture with the color space that it has in the GLTF file.</p>
+
+
+
+    <div class="gallery gallery">
+      <figure>
+        <img src="../Images/Posts/Physical_Based_Rendering/No_Normal_Map.PNG" alt="No normal map" loading="lazy">
+        <figcaption>No normal map</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/Physical_Based_Rendering/Distorted_Normal_Map.PNG" alt="Distorted normal map" loading="lazy">
+        <figcaption>Distorted normal map</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/Physical_Based_Rendering/Final_Normal_Map_Working.png" alt="Final normal map working" loading="lazy">
+        <figcaption>Final normal map working</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Take aways and next steps</p>
+
+    <p>This task is my first complex task with graphics, and it is what lighted my interest in graphics programming.</p>
+    <p>With it I learned how light is simulated in a computer and the maths behind it, and how to handle sending data to the shaders with the Root Signature in a efficient way.</p>
+    <p>This implementation of PBR is definitive due time limitations in the Master's Degree, but in the future I plan to add support for more functionalities like opacity, anistropy or subsurface scattering.</p>
   </main>
 
 </body>

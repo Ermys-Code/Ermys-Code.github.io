@@ -698,7 +698,7 @@ html.is-leaving main {
 .page .subtitle {
   margin: 2.5rem 0 0.75rem;
   font-family: var(--font-brand);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.3;
@@ -979,4 +979,45 @@ html.lightbox-open {
   margin-top: 2.5rem;
   padding-top: 2rem;
   border-top: 1px solid var(--line);
+}
+
+/* ---------- Gallery variants ---------- */
+ 
+.gallery-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+ 
+.gallery-1 {
+  grid-template-columns: minmax(0, 40rem);
+  justify-content: center;
+}
+
+/* ---------- Footer on gallery images ---------- */
+ 
+.gallery figure {
+  position: relative;
+  margin: 0;
+}
+ 
+.gallery figcaption {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  padding: 2.5rem 1rem 0.85rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+  border-radius: 0 0 7px 7px;
+  font-family: var(--font-brand);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+  pointer-events: none;
+}
+ 
+@media (max-width: 40rem) {
+  .gallery figcaption {
+    padding: 1.5rem 0.6rem 0.5rem;
+    font-size: 0.85rem;
+  }
 }

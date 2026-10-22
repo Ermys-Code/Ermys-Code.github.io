@@ -62,11 +62,9 @@
     <ul class="list">
       <li>First task: Add support for metallic, roughness, normal map, emissive and AO textures.</li>
       <li>Second task: Implement normal calculations and the new render equation on the Pixel Shader.</li>
-      <li>Third task: Test the implementation on different scenarios with different materials and meshes.</li>
     </ul>
     <p>For the first task me and my classmate worked together.</p>
-    <p>For the second, we worked together on implementing the metallic-roughness calculations, and then I supported my classmate with the implementation of the normal, emissive and AO calculations, since I jumped to other <a class="link" href="../Posts/HDR_Skybox.html">task</a>.</p>
-    <p>For the third task, we both worked in our own tests in order to test the maximum number of possible scenarios.</p>
+    <p>For the second, we worked together on implementing the metallic-roughness calculations, and then I supported my classmate with the implementation of the normal calculations, since I jumped to another <a class="link" href="../Posts/HDR_Skybox.html">task</a>.</p>
 
 
 
@@ -86,7 +84,6 @@
       <li>R channel is AO.</li>
       <li>G channel is roughness.</li> 
       <li>B channel is metallic.</li>
-      <li>8 bytes of padding to align memory with HLSL cBuffers.</li>
     </ul>
     <p>Then, in the material data struct we added bools to indicate if the material contains metallic/roughenn/AO txture, normal map texture and emissve texture, and two values, normal factor and emissive color value, so the final struct contains:</p>
     <ul class="list">
@@ -114,19 +111,7 @@
       <li>Smith Masking Function for microfacet visibility.</li> 
       <li>GGX Normal Distribution Function for microfacet distribution.</li>
     </ul>
-    <p>After that I jumped to other <a class="link" href="../Posts/HDR_Skybox.html">task</a>, but gave support to my classmate to do the normal unpacking and transformation from tangent space to world space and apply the AO and emissive textures to the pixel shader.</p>
-
-    <br/>
-
-    <p class="lead">Third task: Test the implementation.</p>
-    <p>Once we had all the implementation done, we did multiple scenarios to test how robust was the system and the compatibility with the light components that we had.</p>
-    <p>Some of the test that we did include:</p>
-    <ul class="list">
-      <li>Check different roughness and metallic combinations on different meshes in the same scene.</li>
-      <li>Compare how the materials looked in our engine with how they looked in Unity and glTFViewer.</li> 
-      <li>Expose different meshes with different materials to all the light types of our engine.</li>
-      <li>Test normal maps on different materials moving light sources around the mesh.</li>
-    </ul>
+    <p>After that I jumped to another <a class="link" href="../Posts/HDR_Skybox.html">task</a>, but gave support to my classmate to do the normal unpacking and transformation from tangent space to world space.</p>
 
 
 

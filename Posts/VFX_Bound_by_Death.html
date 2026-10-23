@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1b1c1d">
-  <meta name="description" content="Raul Rodriguez - VFX for Bound by Death">
+  <meta name="description" content="Raúl Rodríguez - VFX for Bound by Death">
   <title>VFX for Bound by Death - Raúl Rodríguez</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
     <div class="header-inner">
       <a class="brand" href="../index.html">Raúl Rodríguez</a>
 
-      <nav aria-label="Principal">
+      <nav aria-label="Main navigation">
         <ul class="nav-list">
           <li><a href="../about.html">About</a></li>
           <li><a href="../portfolio.html">Portfolio</a></li>
@@ -31,8 +31,181 @@
   </header>
 
   <main class="page">
-    <h1>VFX for Bound by Death</h1>
-    <p class="lead">This post is not ready to be posted yet.</p>
+    <div class="page-header">
+      <h1>VFX for Bound by Death</h1>
+      <ul class="post-tags">
+        <li class="tag tag-solo" title="Solo work"><span class="sr-only">Solo work</span></li>
+        <li class="tag tag-graphics" title="Graphics"><span class="sr-only">Graphics</span></li>
+        <li class="tag tag-gameplay" title="Gameplay"><span class="sr-only">Gameplay</span></li>
+      </ul>
+    </div>
+
+    <p class="subtitle">Overview</p>
+    <p>For my master's degree project, <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, we wanted to add visual effects to provide feedback to players and enhance their experience.</p>
+    <p>Each effect was a separate task in the project, but I've gathered them all in this post because they have a lot in common.</p>
+    <div class="gallery gallery-1">
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/All_Effects.PNG" alt="All effects" loading="lazy">
+        <figcaption>The three effects and the mesh without effects</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Problems and objectives</p>
+    <p>We had a serious lack of feedback: players couldn't tell whether they were taking or dealing damage, dead enemies simply popped off the screen, and we had no way to represent the special paths that Death, one of the game's characters, could use.</p>
+    <p>With these problems in mind, the art team proposed the following effects:</p>
+    <ul class="list">
+      <li>A red flash on the mesh to indicate that it has taken damage.</li>
+      <li>A dissolve effect to make dead enemies disappear smoothly.</li>
+      <li>A spectral effect for paths that only Death can use.</li>
+    </ul>
+
+    <p class="subtitle">Technical implementation</p>
+    <p>I wanted the effects to be easy to add to the game, so I took advantage of the game engine's component-based structure and created one component for each effect. Each component has its own accessible configuration, and I also exposed functions through the engine API so the effects could be controlled at runtime through scripting.</p>
+    <p>After finishing the Damage Highlight and Dissolve effects, I integrated them into the game by modifying the scripts that handled damage and enemy deaths so they could trigger the effects smoothly.</p>
+    <br/>
+    <p class="lead">Damage effect.</p>
+    <p>This effect applies two color tints to the mesh on top of its base textures: a central color that tints pixels facing the camera and a rim color that tints pixels facing away from the camera, usually around the edges of the mesh.</p>
+    <p>To do this, I created a new struct called DamageHighlightData, which holds all the data the component needs:</p>
+    <ul class="list">
+      <li>Intensity of the highlight</li>
+      <li>Center color value</li>
+      <li>Rim color value</li>
+      <li>Threshold value to separate the center pixels and the rim pixels</li>
+    </ul>
+    <p>I then created another struct, DamageHighlightCB, to represent the cBuffer that the shader would receive:</p>
+    <ul class="list">
+      <li>Whether the mesh has a DamageHighlightComponent.</li>
+      <li>12 bytes of padding to align memory with HLSL cBuffers.</li>
+      <li>DamageHighlightData struct itself.</li>
+    </ul>
+    <p>Next, I added the values of the component to its UI using ImGui for easy configuration.</p>
+    <p>Finally, in the Geometry Pass of the <a class="link" href="../Posts/Deferred_Shading.html">Deferred Shading</a> pipeline, I added the new cBuffer to the root signature. When iterating through the scene's mesh renderers, I check whether each game object has a Damage Highlight component. If it does, I save the data in the cBuffer and set the corresponding flag so the pixel shader can read it.</p>
+    <p>Once the component was finished and the Geometry Pass was updated, I added the new cBuffer to the pixel shader registers.</p>
+    <p>When sampling the emissive texture to store it in the emissive GBuffer, I check whether the mesh has the component. If it does:</p>
+    <ol class="list-ordered">
+      <li>Calculate the current pixel's rim amount by raising the negated dot product of the view and normal vectors to the configured threshold, then subtracting the maximum threshold.</li>
+      <li>Multiply the component's configured center color by the pixel's base color.</li>
+      <li>Interpolate between the multiplied center color and the component's configured rim color using the current pixel's rim amount.</li>
+      <li>Add the calculated color to the mesh's existing emissive color and store the result in the GBuffer.</li>
+    </ol>
+    <div class="gallery gallery-2">
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Damage_Highlight_for_Damage.PNG" alt="Damage highlight for damage" loading="lazy">
+        <figcaption>Effect used to indicate damage</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Damage_Highlight_for_Healing.PNG" alt="Damage highlight for healing" loading="lazy">
+        <figcaption>Effect used to indicate healing</figcaption>
+      </figure>
+    </div>
+
+    <br/>
+
+    <p class="lead">Dissolve effect.</p>
+    <p>This effect makes a mesh disappear using a dissolve effect driven by Perlin noise, with a solid-colored rim around the dissolved areas.</p>
+    <p>To do this, I created a new struct called DissolveData, which holds all the data the component needs:</p>
+    <ul class="list">
+      <li>Amount of the mesh to dissolve.</li>
+      <li>Rim color value.</li>
+      <li>Rim thickness.</li>
+    </ul>
+    <p>I then created another struct, DissolveCB, to represent the cBuffer that the shader would receive:</p>
+    <ul class="list">
+      <li>If the mesh has DissolveComponent.</li>
+      <li>12 bytes of padding to align memory with HLSL cBuffers.</li>
+      <li>DissolveData struct itself.</li>
+      <li>12 bytes of padding to align memory with HLSL cBuffers.</li>
+    </ul>
+    <p>Next, I added the values of the component to its UI using ImGui for easy configuration.</p>
+    <p>I realized that, instead of using a separate cBuffer for each effect, I could use a single one containing the data for both. So I created another struct, VisualEffectsCB, to represent both effects:</p>
+    <ul class="list">
+      <li>DamageHighlightCB struct itself.</li>
+      <li>DissolveCB struct itself.</li>
+    </ul>
+    <p>After that, in the Geometry Pass of the <a class="link" href="../Posts/Deferred_Shading.html">Deferred Shading</a> pipeline, I replaced the DamageHighlight cBuffer in the root signature with the new one containing data for both effects. When iterating through the scene's mesh renderers, I check whether each game object has a Dissolve component. If it does, I save the data in the cBuffer and set the corresponding flag so the pixel shader can read it.</p>
+    <p>I also added a new slot for the noise texture in the root signature. When iterating through the scene's mesh renderers, I pass the noise texture through the registers if the game object has a Dissolve component.</p>
+    <p>With the C++ implementation complete, I added the new cBuffers and register to the HLSL code.</p>
+    <p>When sampling the base color texture to store it in the base color GBuffer, I check whether the mesh has the component. If it does:</p>
+    <ol class="list-ordered">
+      <li>Sample the noise texture using the pixel's UV coordinates.</li>
+      <li>If the noise texture's R-channel value is lower than the received dissolve amount, discard the pixel.</li>
+      <li>If the noise texture's R-channel value is greater than the received dissolve amount but lower than that amount plus the rim thickness divided by 10, color the pixel with the rim color and set its emissive value to the same color.</li>
+      <li>Otherwise, sample the base color as usual.</li>
+    </ol>
+    <div class="gallery gallery-2">
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Small_Dissolve_Green.PNG" alt="Subtle green dissolve effect" loading="lazy">
+        <figcaption>Subtle green dissolve effect</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Big_Dissolve_Purple.PNG" alt="Strong purple dissolve effect" loading="lazy">
+        <figcaption>Strong purple dissolve effect</figcaption>
+      </figure>
+    </div>
+
+    <br/>
+
+    <p class="lead">Spectral effect.</p>
+    <p>This effect makes a mesh transparent, with a glow in a customizable color around its edges.</p>
+    <p>To do this, I first had to develop a new render pass with blending enabled that runs after deferred shading, because until then, we hadn't needed blending at all.</p>
+    <p>I then created a new struct called SpectralData to send the component's data to the shader:</p>
+    <ul class="list">
+      <li>Spectral color value.</li>
+    </ul>
+    <p>I also created another struct to represent the cBuffer that the shader would receive:</p>
+    <ul class="list">
+      <li>Whether the mesh has a spectral component.</li>
+      <li>12 bytes of padding to align memory with HLSL cBuffers.</li>
+      <li>The SpectralData struct itself.</li>
+      <li>4 bytes of padding to align memory with HLSL cBuffers.</li>
+    </ul>
+    <p>Next, I modified the Mesh Renderer component by adding a dropdown menu that lets you choose whether a mesh is rendered in the deferred shading pipeline or the blending pipeline.</p>
+    <p>With the components ready, I iterate through all mesh renderers in blending mode during the blending pass. If a renderer has the Spectral component, I send its data through the cBuffer.</p>
+    <p>In the new blending-pipeline pixel shader, I render meshes using forward rendering. By default, all meshes are rendered at 50% opacity. Because this pipeline is only used for this effect in our engine, a mesh without the Spectral component is rendered as semi-transparent, making it easy to identify meshes in transparent mode without checking their configuration.</p>
+    <p>If the mesh renderer has a Spectral component, the pixel shader reads the data and does the following:</p>
+    <ol class="list-ordered">
+      <li>Calculate the negated dot product of the view direction and the normal direction.</li>
+      <li>If NdotV is less than 0.4f, set it to 0; if it is greater than 0.9f, set it to 1.0f.</li>
+      <li>Then calculate the pixel's alpha by applying smoothstep to the calculated NdotV value between 0.4 and 0.9.</li>
+      <li>If the calculated alpha is greater than 0.999f, set the final color to the component's configured color plus one, creating small bloom flashes along the edges.</li>
+      <li>If the calculated alpha is less than 0.015f, set it to 0.015f to limit the maximum transparency.</li>
+      <li>Finally, return the final color, with or without bloom, using the calculated alpha.</li>
+    </ol>
+    <div class="gallery gallery-2">
+      <figure> 
+        <img src="../Images/Posts/VFX_Bound_by_Death/Spectral_Blue.PNG" alt="Spectral blue" loading="lazy">
+        <figcaption>Spectral effect with a blue color configuration</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Spectral_Purple.PNG" alt="Spectral purple" loading="lazy">
+        <figcaption>Spectral effect with a purple color configuration</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Challenges and problem-solving</p>
+    <p>I encountered one major issue while developing these effects:</p>
+    <br/>
+    <p class="lead">Transparency incompatibility.</p>
+    <p>While I was implementing the spectral effect, a classmate was working on a flow-map implementation. He reused the dropdown I had added to the Mesh Renderer to introduce a third render mode exclusively for the flow map. He also added a depth pre-pass at the beginning of the frame to mark flow-map pixels in the stencil buffer.</p>
+    <p>The problem was that he hadn't noticed that his pre-pass marked all pixels from mesh renderers that were not in deferred mode, rather than marking only those in flow-map mode.</p>
+    <p>The stencil marking caused the deferred shading pass to ignore those pixels, which meant that nothing behind a transparent mesh was rendered.</p>
+    <p>To fix this, I modified the pre-pass so that it only considered meshes in flow-map mode. As a result, transparent meshes no longer affected the deferred shading pass.</p>
+    <div class="gallery gallery-2">
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Spectral_Incompatibility.PNG" alt="Spectral incompatibility" loading="lazy">
+        <figcaption>Spectral effect with nothing rendered behind it</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/VFX_Bound_by_Death/Spectral_Fixed.PNG" alt="Spectral fixed" loading="lazy">
+        <figcaption>Spectral effect working properly</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Takeaways and next steps</p>
+    <p>While developing these effects, I learned how to work with a component-based structure by creating new components and integrating them into the game. I also learned how to modify the necessary scripts so that each effect provides the correct feedback to the player.</p>
+    <p>I also learned how to work with view-direction and normal-direction vectors to create interesting visual effects.</p>
+    <p>I learned how to create a pipeline that supports blending and how to adjust opacity to create good-looking transparent meshes.</p>
+    <p>In the future, I want to improve how the engine decides whether a mesh should be rendered in the deferred shading pipeline or the blending pipeline. My goal is to design an automatic system instead of configuring each transparent mesh renderer by hand.</p>
   </main>
 
 </body>

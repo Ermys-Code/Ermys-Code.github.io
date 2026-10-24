@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b1c1d">
+  <meta name="description" content="Raul Rodriguez - HDR Skybox and IBL Antialiasing">
+  <title>HDR Skybox and IBL Antialiasing - Raúl Rodríguez</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clarity+City:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="../Js/menu.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../index.html">Raúl Rodríguez</a>
+
+      <nav aria-label="Principal">
+        <ul class="nav-list">
+          <li><a href="../about.html">About</a></li>
+          <li><a href="../portfolio.html">Portfolio</a></li>
+          <li><a href="../posts.html">Posts</a></li>
+          <li><a href="../Documents/Raul_Rodriguez_CV.pdf" target="_blank" rel="noopener">Resume</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="page-header">
+      <h1>HDR Skybox and IBL Antialiasing</h1>
+      <ul class="post-tags">
+        <li class="tag tag-solo" title="Solo work"><span class="sr-only">Solo work</span></li>
+        <li class="tag tag-engine" title="Engine"><span class="sr-only">Engine</span></li>
+        <li class="tag tag-graphics" title="Graphics"><span class="sr-only">Graphics</span></li>
+      </ul>
+    </div>
+    
+    <p class="subtitle">Overview</p>
+    <p>In my Master's Degree project <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, we wanted to upgrade our previously IBL system so it become more noticeable.</p>
+    <p>To acomplish this, we wanted to add support for HDR textures as skybox, because before we only supported cubemaps.</p>
+
+    <p class="subtitle">Problems and objectives</p>
+    <p>For this task, all we needed to do was convert the HDR images that use in equirectangular map to a cubemap and use this cubemap as source for the already existent skybox pipeline.</p>
+    <p>I also took the oportunity to implement antialiasing on the Specular IBL to minimize aliasing artifacts.</p>
+
+    <p class="subtitle">Technical implementation</p>
+    <p>The first thing I did was modify the Skybox class to store a reference to a HDR texture.</p>
+    <p>Then I created a new render pass that gets executed at he start of the Skybox initialization, and this pass takes the HDR texture stored in the Skybox and renders a cubemap with 11 mip levels that is stored where the previous skybox cubemap was configured, maintaining the exisiting pipeline.</p>
+    <p>To convert from equirectangular map to cubemap, I did the following:</p>
+    <ol class="list-ordered">
+      <li>Convert the position of the pixel to a direction using the camera's view projection.</li>
+      <li>Calculate X value of the UV coordinates for this pixel using atan2 on direction.Z and direction.X.</li>
+      <li>Calculate Y value of the UV coordinates for this pixel using asin on direction.Y.</li>
+      <li>Normalize both X and Y values to 0-1 range.</li>
+      <li>Flip both axes to get the correct orientation.</li>
+      <li>Sample the HDR skybox texture with the calculated UV.</li>
+    </ol>
+    <p>With the HDR skybox working, I started implementing the Specular IBL Antialiasing by modifying the Irradiance Skybox Pass and the Prefiltered Environment Skybox Pass.</p>
+    <p>In both pixel shaders I use the Normal Distribution Function to calculate the probability density function based on the roughness and the dot product between the normal and the half vector.</p>
+    <p>Then I compute the mip level to use for each sample on the :</p>
+    <ol class="list-ordered">
+      <li>Get the probability of each sample using the number of samples and the probability density function previously calculated.</li>
+      <li>Get the probability of each texel using the width of the viewport that the shader recives.</li>
+      <li>Do log2 of the probability of each sample divided by the probability of each texel, and multiply the result by 0.5, if the result is grater than 0 that's the level to sample, if not, 0 is the level to sample.</li>
+    </ol>
+
+    <p class="subtitle">Challenges and problem-solving</p>
+    <p>I encountered one major issue during development:</p>
+    <br/>
+    <p class="lead">Equirectangular to cubemap conversion error.</p>
+    <p>When converting from equirectangular to cubemap, the rendered cubemap apeared totally distorted in the X axis.</p>
+    <p>After a bit of debugging, I realized that I had an error when normalizing to 0-1 range the X value of the UVs, where I was missing some parenthesis, I fixed the mathematical operation and it worked fine.</p>
+    <div class="gallery gallery-2">
+      <figure>
+        <img src="../Images/Posts/HDR_Skybox_and_IBL_Antialiasing/Original_HDR_Texture.png" alt="Original HDR Texture" loading="lazy">
+        <figcaption>Original HDR texture</figcaption>
+      </figure>
+      <figure>
+        <img src="../Images/Posts/HDR_Skybox_and_IBL_Antialiasing/Distorted_Cubemap_Face.png" alt="Distorted Cubemap Face" loading="lazy">
+        <figcaption>Distorted cubemap face</figcaption>
+      </figure>
+    </div>
+  </main>
+
+</body>
+</html>

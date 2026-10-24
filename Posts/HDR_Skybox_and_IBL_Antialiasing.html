@@ -41,40 +41,40 @@
     </div>
     
     <p class="subtitle">Overview</p>
-    <p>In my Master's Degree project <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, we wanted to upgrade our previously IBL system so it become more noticeable.</p>
-    <p>To acomplish this, we wanted to add support for HDR textures as skybox, because before we only supported cubemaps.</p>
+    <p>In my Master's Degree project <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, we wanted to upgrade our previous IBL system so that it would become more noticeable.</p>
+    <p>To accomplish this, we wanted to add support for HDR textures as skyboxes, because before we only supported cubemaps.</p>
 
     <p class="subtitle">Problems and objectives</p>
-    <p>For this task, all we needed to do was convert the HDR images that use in equirectangular map to a cubemap and use this cubemap as source for the already existent skybox pipeline.</p>
-    <p>I also took the oportunity to implement antialiasing on the Specular IBL to minimize aliasing artifacts.</p>
+    <p>For this task, all we needed to do was convert the HDR images, which use an equirectangular map, to a cubemap and use this cubemap as the source for the already existing skybox pipeline.</p>
+    <p>I also took the opportunity to implement antialiasing in the Specular IBL to minimize aliasing artifacts.</p>
 
     <p class="subtitle">Technical implementation</p>
-    <p>The first thing I did was modify the Skybox class to store a reference to a HDR texture.</p>
-    <p>Then I created a new render pass that gets executed at he start of the Skybox initialization, and this pass takes the HDR texture stored in the Skybox and renders a cubemap with 11 mip levels that is stored where the previous skybox cubemap was configured, maintaining the exisiting pipeline.</p>
-    <p>To convert from equirectangular map to cubemap, I did the following:</p>
+    <p>The first thing I did was modify the Skybox class to store a reference to an HDR texture.</p>
+    <p>Then, I created a new render pass that is executed at the start of the Skybox initialization. This pass takes the HDR texture stored in the Skybox and renders a cubemap with 11 mip levels, which is stored where the previous skybox cubemap was configured, maintaining the existing pipeline.</p>
+    <p>To convert from an equirectangular map to a cubemap, I did the following:</p>
     <ol class="list-ordered">
       <li>Convert the position of the pixel to a direction using the camera's view projection.</li>
-      <li>Calculate X value of the UV coordinates for this pixel using atan2 on direction.Z and direction.X.</li>
-      <li>Calculate Y value of the UV coordinates for this pixel using asin on direction.Y.</li>
-      <li>Normalize both X and Y values to 0-1 range.</li>
+      <li>Calculate the X value of the UV coordinates for this pixel using atan2 on direction.Z and direction.X.</li>
+      <li>Calculate the Y value of the UV coordinates for this pixel using asin on direction.Y.</li>
+      <li>Normalize both X and Y values to the 0-1 range.</li>
       <li>Flip both axes to get the correct orientation.</li>
-      <li>Sample the HDR skybox texture with the calculated UV.</li>
+      <li>Sample the HDR skybox texture with the calculated UV coordinates.</li>
     </ol>
     <p>With the HDR skybox working, I started implementing the Specular IBL Antialiasing by modifying the Irradiance Skybox Pass and the Prefiltered Environment Skybox Pass.</p>
-    <p>In both pixel shaders I use the Normal Distribution Function to calculate the probability density function based on the roughness and the dot product between the normal and the half vector.</p>
-    <p>Then I compute the mip level to use for each sample on the :</p>
+    <p>In both pixel shaders, I use the Normal Distribution Function to calculate the probability density function based on the roughness and the dot product between the normal and the half vector.</p>
+    <p>Then I compute the mip level to use for each sample as follows:</p>
     <ol class="list-ordered">
-      <li>Get the probability of each sample using the number of samples and the probability density function previously calculated.</li>
-      <li>Get the probability of each texel using the width of the viewport that the shader recives.</li>
-      <li>Do log2 of the probability of each sample divided by the probability of each texel, and multiply the result by 0.5, if the result is grater than 0 that's the level to sample, if not, 0 is the level to sample.</li>
+      <li>Get the probability of each sample using the number of samples and the previously calculated probability density function.</li>
+      <li>Get the probability of each texel using the width of the viewport that the shader receives.</li>
+      <li>Calculate the log2 of the probability of each sample divided by the probability of each texel, and multiply the result by 0.5. If the result is greater than 0, that is the level to sample; otherwise, the level to sample is 0.</li>
     </ol>
 
     <p class="subtitle">Challenges and problem-solving</p>
     <p>I encountered one major issue during development:</p>
     <br/>
     <p class="lead">Equirectangular to cubemap conversion error.</p>
-    <p>When converting from equirectangular to cubemap, the rendered cubemap apeared totally distorted in the X axis.</p>
-    <p>After a bit of debugging, I realized that I had an error when normalizing to 0-1 range the X value of the UVs, where I was missing some parenthesis, I fixed the mathematical operation and it worked fine.</p>
+    <p>When converting from equirectangular to cubemap, the rendered cubemap appeared totally distorted along the X axis.</p>
+    <p>After a bit of debugging, I realized that I had made an error when normalizing the X value of the UVs to the 0-1 range: I was missing some parentheses. I fixed the mathematical operation and it worked fine.</p>
     <div class="gallery gallery-2">
       <figure>
         <img src="../Images/Posts/HDR_Skybox_and_IBL_Antialiasing/Original_HDR_Texture.png" alt="Original HDR Texture" loading="lazy">
@@ -85,6 +85,11 @@
         <figcaption>Distorted cubemap face</figcaption>
       </figure>
     </div>
+
+    <p class="subtitle">Takeaways and next steps</p>
+
+    <p>With this implementation, I learned how to convert an equirectangular map to a cubemap, and I understood how antialiasing works, not just in IBL but on textures too.</p>
+    <p>In the future, I would like to improve the resource management in the Skybox class, since I feel that right now it is a bit messy.</p>
   </main>
 
 </body>

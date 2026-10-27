@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1b1c1d">
+  <meta name="description" content="Raul Rodriguez - Deferred Shading">
+  <title>Deferred Shading - Raúl Rodríguez</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Clarity+City:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="../Js/menu.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="../index.html">Raúl Rodríguez</a>
+
+      <nav aria-label="Principal">
+        <ul class="nav-list">
+          <li><a href="../about.html">About</a></li>
+          <li><a href="../portfolio.html">Portfolio</a></li>
+          <li><a href="../posts.html">Posts</a></li>
+          <li><a href="../Documents/Raul_Rodriguez_CV.pdf" target="_blank" rel="noopener">Resume</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="page-header">
+      <h1>Deferred Shading</h1>
+      <ul class="post-tags">
+        <li class="tag tag-handoff" title="Inherited work"><span class="sr-only">Inherited work</span></li>
+        <li class="tag tag-graphics" title="Graphics"><span class="sr-only">Graphics</span></li>
+        <li class="tag tag-engine" title="Engine"><span class="sr-only">Engine</span></li>
+      </ul>
+    </div>
+
+    <p class="subtitle">Overview</p>
+    <p>In my Master's Degree project <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, after implementing PBR, we got serious performance problems. This was caused by the large number of meshes that we had to render, due to the level being made from small modular pieces.</p>
+    <p>We decided to implement deferred rendering to minimize the number of light calculations per frame, and a classmate took the task, but after some time he asked me for help adding the normal map, emissive and AO GBuffers, and I ended up finishing the implementation myself.</p>
+    <div class="gallery gallery-1">
+      <figure>
+        <img src="../Images/Posts/Deferred_Shading/GBuffers.png" alt="GBuffers" loading="lazy">
+        <figcaption>GBuffers</figcaption>
+      </figure>
+    </div>
+
+    <p class="subtitle">Problems and objectives</p>
+    <p>I planned the following tasks:</p>
+    <ul class="list">
+      <li>Add normal map GBuffer.</li>
+      <li>Add emissive GBuffer.</li>
+      <li>Modify the Metallic Roughness GBuffer to also include ambient occlusion.</li>
+    </ul>
+
+    <p class="subtitle">Technical implementation</p>
+    <br/>
+    <p class="lead">First task: Add normal map GBuffer.</p>
+    <p>First, I modified the Geometry Pass, which contains the pipeline that generates the GBuffers, and added a new Render Target that will store the normal map of the scene.</p>
+    <p>Then, I modified the root signature to be able to send the normal map textures of the meshes to the pixel shader.</p>
+    <p>Next, I took the normal calculations that we already had in the forward rendering pipeline, implemented them in the pixel shader, and stored the final calculated value in the new Render Target.</p>
+    <p>With the Geometry Pass finished, I modified the Deferred Shading Pass, which contains the pipeline that calculates lighting from the GBuffers, to send the new normal map GBuffer to the pixel shader.</p>
+    <p>Finally, I used the normal coming from the GBuffer to calculate lighting instead of the polygon normal.</p>
+    <br/>
+    <p class="lead">Second task: Add emissive GBuffer.</p>
+    <p>I followed the same steps as I did with the normal map, but with the emissive texture.</p>
+    <ol class="list-ordered">
+      <li>Create a new Render Target to store the emissive GBuffer.</li>      
+      <li>Modify the root signature to send the textures to the pixel shader.</li>      
+      <li>Sample the emissive texture into the new Render Target.</li>      
+      <li>Modify the Deferred Shading Pass to send the new emissive GBuffer to the pixel shader.</li>      
+      <li>Add the emissive color to the final color calculated from the lighting.</li>      
+    </ol>
+    <br/>
+    <p class="lead">Third task: Add Ambient Occlusion to the Metallic Roughness GBuffer.</p>
+    <p>For the AO, I modified the Geometry Pass to send the AO textures to the pixel shader.</p>
+    <p>Then, I sampled the texture into the R channel of the Metallic Roughness GBuffer. This is to maintain how the textures were used in the previous forward rendering pipeline, so we can reuse as much code as possible.</p>
+    <p>And finally, I modified the pixel shader of the Deferred Shading Pass to sample the AO from the R channel of the Metallic Roughness GBuffer and use it to dim the specular and diffuse results of the PBR calculation.</p>
+
+    <p class="subtitle">Challenges and problem-solving</p>
+    <p>I had one major problem during this development:</p>
+    <br/>
+    <p class="lead">Major performance issues.</p>
+    <p>When I took over the task from my classmate, he told me that, for some reason, the performance using the Deferred Shading Pipeline was even worse than using forward rendering with the PBR calculations.</p>
+    <p>I used PIX to compare the Deferred Shading Pipeline and the Forward Rendering Pipeline, and found out that there was an excessive number of draw calls in the Deferred Shading Pipeline.</p>
+    <p>After checking the Deferred Pipeline, I found a nested loop in the code that creates the draw calls for the meshes: the outer loop iterated over all the scene meshes, and for each one, the inner loop iterated over all the meshes again and submitted the draw commands. This caused a quadratic growth of draw calls: 3 meshes generated 9 draw calls, and 10 meshes generated 100.</p>
+    <p>To fix it, I removed one of the loops, which directly improved the performance from around 10 FPS to 400+ FPS with the whole first part of the first level being rendered at once.</p>
+    
+    <p class="subtitle">Takeaways and next steps</p>
+    <p>With this task, I learned how Deferred Shading works and how it improves performance in a clever way.</p>
+    <p>In the future, continuing with the render pipeline optimization, I would like to implement light culling, since in <a class="link" href="../Projects/Bound_by_Death.html">Bound by Death</a>, another classmate took that task and I didn't have the opportunity to implement it myself.</p>
+  </main>
+
+</body>
+</html>
